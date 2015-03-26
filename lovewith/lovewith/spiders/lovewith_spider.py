@@ -1,4 +1,7 @@
+__author__ = 'zgh'
 # coding=utf-8
+from logging import info
+
 import re
 import json
 
@@ -15,20 +18,20 @@ from scrapy.contrib.spiders import CrawlSpider, Rule
 from scrapy.contrib.linkextractors.sgml import SgmlLinkExtractor as sle
 
 
-from doubanbook.items import *
-from misc.log import *
+from lovewith.items import *
+
 
 
 class DoubanBookSpider(CrawlSpider):
-    name = "doubanbook"
-    allowed_domains = ["douban.com"]
+    name = "lovewith"
+    allowed_domains = ["lovewith.me"]
     start_urls = [
-        "http://book.douban.com/tag/"
+        "http://www.lovewith.me/share/detail/all/47313/"
     ]
     rules = [
-        Rule(sle(allow=("/subject/\d+/?$")), callback='parse_2'),
-        Rule(sle(allow=("/tag/[^/]+/?$", )), follow=True),
-        Rule(sle(allow=("/tag/$", )), follow=True),
+        Rule(sle(allow=("/u/\d+/?$")), callback='parse_2'),
+        # Rule(sle(allow=("/tag/[^/]+/?$", )), follow=True),
+        # Rule(sle(allow=("/tag/$", )), follow=True),
     ]
 
     def test_print(self, content="debug", path='/tmp/test.log'):
@@ -44,13 +47,13 @@ class DoubanBookSpider(CrawlSpider):
         items = []
         sel = Selector(response)
         self.test_print(sel)
-        sites = sel.css('#wrapper')
+        sites = sel.css('.storyDetailUL')
         for site in sites:
-            item = DoubanSubjectItem()
+            item = LovewithItem()
             # extract(): 为了提取真实的原文数据
-            item['title'] = site.css('h1 span::text').extract()
-            item['link'] = response.url
-            item['content_intro'] = site.css('#link-report .intro p::text').extract()
+            item['name'] = site.css('sdtl data-action').extract()
+            item['link'] = site.css('sdtl img[src^="https"]').extract()
+            # item['content_intro'] = site.css('#link-report .intro p::text').extract()
             items.append(item)
             # print repr(item).decode("unicode-escape") + '\n'
             print item
