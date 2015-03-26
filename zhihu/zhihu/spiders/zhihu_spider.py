@@ -6,6 +6,8 @@ from urlparse import urlparse
 
 
 from scrapy.selector import Selector
+import time
+
 try:
     from scrapy.spider import Spider
 except:
@@ -30,6 +32,7 @@ class ZhihuSpider(CrawlSpider):
         "http://www.zhihu.com/",
         "http://www.zhihu.com/people/jia-yang-qing-74",
     ]
+    #定义爬取URL的规则
     rules = [
         Rule(sle(allow=("/people/[^/]+/followees$")), callback='parse_followees'),
         Rule(sle(allow=("/people/[^/]+/followers$", )), callback='parse_followers'),
@@ -67,6 +70,13 @@ class ZhihuSpider(CrawlSpider):
             'followers':'a.item[href*=followers] strong::text',
         }
     }
+    def test_print(self, content="debug", path='/tmp/test.log'):
+        fsock = open(path, 'a')
+        now = time.strftime("%Y-%m-%d %H %M %S", time.localtime())
+        result = '%s--%s\n' % (now, content)
+        fsock.write(result)
+        fsock.close()
+        return result
 
     def traversal(self, sel, rules, item):
         # print 'traversal:', sel, rules.keys()
@@ -96,6 +106,7 @@ class ZhihuSpider(CrawlSpider):
         return self.dfs(Selector(response), rules, item_class)
 
     def parse_people_with_rules(self, response):
+        self.test_print(response)
         item = self.parse_with_rules(response, self.all_css_rules, ZhihuPeopleItem)
         item['id'] = urlparse(response.url).path.split('/')[-1]
         info('Parsed '+response.url) # +' to '+str(item))
