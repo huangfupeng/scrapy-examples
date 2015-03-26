@@ -3,6 +3,8 @@ import json
 
 
 from scrapy.selector import Selector
+import time
+
 try:
     from scrapy.spider import Spider
 except:
@@ -28,9 +30,19 @@ class DoubanBookSpider(CrawlSpider):
         Rule(sle(allow=("/tag/$", )), follow=True),
     ]
 
+    def test_print(self, content="debug", path='/tmp/test.log'):
+            fsock = open(path, 'a')
+            now = time.strftime("%Y-%m-%d %H %M %S", time.localtime())
+            result = '%s--%s\n' % (now, content)
+            fsock.write(result)
+            fsock.close()
+            return result
+
     def parse_2(self, response):
+        self.test_print(response)
         items = []
         sel = Selector(response)
+        self.test_print(sel)
         sites = sel.css('#wrapper')
         for site in sites:
             item = DoubanSubjectItem()
